@@ -13,6 +13,17 @@ test.describe('Accessibility Tests', () => {
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
+  test('home page with filters applied should not have accessibility violations', async ({ page }) => {
+    await page.goto('/?category=1&publisher=1');
+    await expect(page.getByTestId('game-filters')).toBeVisible();
+
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+
+    expect(accessibilityScanResults.violations).toEqual([]);
+  });
+
   test('game details page should not have accessibility violations', async ({ page }) => {
     await page.goto('/game/1');
     await page.waitForSelector('[data-testid="game-details"]', { timeout: 10000 });
