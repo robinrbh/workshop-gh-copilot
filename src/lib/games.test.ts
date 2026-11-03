@@ -105,6 +105,12 @@ describe('games data-access helpers', () => {
             expect(await titles({ categoryIds: [ids.puzzle], publisherId: ids.pubB })).toEqual([]);
         });
 
+        it('returns an empty list when no game matches the filter combination', async () => {
+            const [empty] = await db.insert(categories).values({ name: 'Empty', description: 'c' }).returning({ id: categories.id });
+            expect(await titles({ categoryIds: [empty.id] })).toEqual([]);
+            expect(await titles({ categoryIds: [empty.id], publisherId: ids.pubA })).toEqual([]);
+        });
+
         it('lists categories and publishers ordered by name', async () => {
             expect((await getAllCategories(db)).map((c) => c.name)).toEqual(['Puzzle', 'Strategy']);
             expect((await getAllPublishers(db)).map((p) => p.name)).toEqual(['Alpha', 'Zeta']);
