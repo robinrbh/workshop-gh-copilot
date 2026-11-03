@@ -39,6 +39,24 @@ test.describe('Game filters', () => {
     await expect(page.getByTestId('filter-result-count')).toHaveText('Showing 2 of 21 games');
   });
 
+  test('shows the empty state when no game matches the filters', async ({ page }) => {
+    // The seeded catalog covers every category/publisher pair, so strip the
+    // category ids from the served page to produce a combination with no matches.
+    await page.route('**/', async (route) => {
+      const response = await route.fetch();
+      const html = (await response.text()).replace(/data-category-id="\d+"/g, 'data-category-id="0"');
+      await route.fulfill({ response, body: html });
+    });
+    await page.reload();
+
+    await page.getByRole('checkbox', { name: 'Strategy' }).check();
+    await page.getByRole('combobox', { name: 'Publisher' }).selectOption({ label: 'GitHub Games' });
+
+    await expect(cards(page)).toHaveCount(0);
+    await expect(page.getByTestId('filter-no-matches')).toHaveText('No games match your filters.');
+    await expect(page.getByTestId('filter-result-count')).toHaveText('Showing 0 of 21 games');
+  });
+
   test('clears all filters', async ({ page }) => {
     await page.getByRole('checkbox', { name: 'Strategy' }).check();
     await page.getByRole('combobox', { name: 'Publisher' }).selectOption({ label: 'Ops Interactive' });
